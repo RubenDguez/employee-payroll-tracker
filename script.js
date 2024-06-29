@@ -1,5 +1,19 @@
 // Get a reference to the #add-employees-btn element
 const addEmployeesBtn = document.querySelector('#add-employees-btn');
+const EMPLOYEES = 'employees';
+
+function readLocalStorage() {
+    let employeeData = localStorage.getItem(EMPLOYEES);
+
+    if (employeeData) employeeData = JSON.parse(employeeData);
+    else employeeData = [];
+
+    return employeeData;
+}
+
+function writeLocalStorage(data) {
+    localStorage.setItem(EMPLOYEES, JSON.stringify(data));
+}
 
 /**
  * Collect Employees
@@ -8,7 +22,7 @@ const addEmployeesBtn = document.querySelector('#add-employees-btn');
  * Function to collect all employees data
  */
 function collectEmployees() {
-    const employees = [];
+    const employees = readLocalStorage();
 
     do {
         const firstName = prompt("Enter the employee's first name:");
@@ -16,9 +30,14 @@ function collectEmployees() {
         const salaryStr = prompt("Enter the employee's salary:");
         const salary = isNaN(salaryStr) ? 0 : parseFloat(salaryStr);
 
+        if (!firstName || !lastName || !salary) {
+            break;
+        }
+
         employees.push({ firstName, lastName, salary });
     } while (confirm("Would you like to add another employee?"));
 
+    writeLocalStorage(employees);
     return employees;
 }
 
@@ -34,8 +53,7 @@ function collectEmployees() {
 function displayAverageSalary(employeesArray) {
     const salaries = employeesArray.map((employee) => (employee.salary));
     const average = (salaries.reduce((a, b) => (a + b), 0)) / salaries.length;
-    const str = `The average employee salary between our ${employeesArray.length} employee(s) is $${average.toFixed(2)}`;
-    console.log(str);
+    console.log(`The average employee salary between our ${employeesArray.length} employee(s) is $${average.toFixed(2)}`);
     return average;
 }
 
@@ -63,6 +81,14 @@ function getRandomEmployee(employeesArray) {
 
 // Display employee data in an HTML table
 const displayEmployees = function (employeesArray) {
+    employeesArray.sort(function (a, b) {
+        if (a.lastName < b.lastName) {
+            return -1;
+        } else {
+            return 1;
+        }
+    });
+
     // Get the employee table
     const employeeTable = document.querySelector('#employee-table');
 
@@ -107,16 +133,9 @@ const trackEmployeeData = function () {
 
     getRandomEmployee(employees);
 
-    employees.sort(function (a, b) {
-        if (a.lastName < b.lastName) {
-            return -1;
-        } else {
-            return 1;
-        }
-    });
-
     displayEmployees(employees);
 }
 
+displayEmployees(readLocalStorage());
 // Add event listener to 'Add Employees' button
 addEmployeesBtn.addEventListener('click', trackEmployeeData);
